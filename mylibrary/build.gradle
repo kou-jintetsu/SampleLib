@@ -4,26 +4,26 @@ plugins {
     id 'maven-publish'
 }
 
-afterEvaluate {
-    publishing{
-        publications{
-            release(MavenPublication){
-                from components.release
-                groupId = 'com.kou.mylibrary'
-                artifactId = 'mylibrary'
-                version = '1.0'
-            }
-
-            debug(MavenPublication) {
-                // Applies the component for the debug build variant.
-                from components.debug
-                groupId = 'com.kou.mylibrary'
-                artifactId = 'mylibrary'
-                version = '1.0'
-            }
-        }
-    }
-}
+//afterEvaluate {
+//    publishing{
+//        publications{
+//            release(MavenPublication){
+//                from components.release
+//                groupId = 'com.kou.mylibrary'
+//                artifactId = 'mylibrary'
+//                version = '1.0'
+//            }
+//
+//            debug(MavenPublication) {
+//                // Applies the component for the debug build variant.
+//                from components.debug
+//                groupId = 'com.kou.mylibrary'
+//                artifactId = 'mylibrary'
+//                version = '1.0'
+//            }
+//        }
+//    }
+//}
 
 android {
     namespace 'com.kou.mylibrary'
