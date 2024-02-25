@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "SampleLib"
 include ':app'
 include ':mylibrary'
+include ':kokoapermision'
