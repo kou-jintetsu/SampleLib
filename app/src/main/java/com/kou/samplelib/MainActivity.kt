@@ -18,9 +18,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPermissionDenied(deniedPermissions: List<String?>?) {
+
+                ShowLib.shortToast(this@MainActivity, "onPermissionDenied!")
                 ShowLib.shortToast(this@MainActivity, "onPermissionDenied")
             }
         }
+
 
         KokoaPermission.create()
             .setPermissionListener(permissionListener)
