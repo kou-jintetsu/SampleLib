@@ -2,7 +2,7 @@ package com.kou.kokoapermision.permision.builder
 
 import com.kou.kokoapermision.util.ObjectUtils
 
-class KokoaPermissionResult(val deniedPermissions: List<String>) {
+class KokoaPermissionResult(private val deniedPermissions: List<String>) {
     val isGranKokoa: Boolean
 
     init {

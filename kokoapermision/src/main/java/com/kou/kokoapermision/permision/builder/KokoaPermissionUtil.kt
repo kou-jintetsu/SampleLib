@@ -23,7 +23,8 @@ object KokoaPermissionUtil {
     private const val PREFS_IS_FIRST_REQUEST = "IS_FIRST_REQUEST"
 
     @SuppressLint("StaticFieldLeak")
-    private val context: Context? = KokoaPermissionProvider.Companion.context
+    private val context: Context? = KokoaPermissionProvider.context
+
     fun isGranKokoa(vararg permissions: String): Boolean {
         for (permission in permissions) {
             if (isDenied(permission)) {
@@ -39,11 +40,7 @@ object KokoaPermissionUtil {
 
     private fun isGranKokoa(permission: String): Boolean {
         return if (permission == Manifest.permission.SYSTEM_ALERT_WINDOW) {
-            if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
-                Settings.canDrawOverlays(context)
-            } else {
-                true
-            }
+            Settings.canDrawOverlays(context)
         } else {
             ContextCompat.checkSelfPermission(
                 context!!,
@@ -95,26 +92,10 @@ object KokoaPermissionUtil {
     }
 
     private val sharedPreferences: SharedPreferences
-        private get() = context!!.getSharedPreferences(PREFS_NAME_PERMISSION, Context.MODE_PRIVATE)
-
-    @JvmOverloads
-    fun startSettingActivityForResult(
-        activity: Activity,
-        requestCode: Int = REQ_CODE_REQUEST_SETTING
-    ) {
-        activity.startActivityForResult(settingIntent, requestCode)
-    }
+        get() = context!!.getSharedPreferences(PREFS_NAME_PERMISSION, Context.MODE_PRIVATE)
 
     val settingIntent: Intent
         get() = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(Uri.parse("package:" + context!!.packageName))
-
-    @JvmOverloads
-    fun startSettingActivityForResult(
-        fragment: Fragment,
-        requestCode: Int = REQ_CODE_REQUEST_SETTING
-    ) {
-        fragment.startActivityForResult(settingIntent, requestCode)
-    }
 
     fun setFirstRequest(permissions: Array<String>) {
         for (permission in permissions) {

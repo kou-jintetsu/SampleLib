@@ -7,14 +7,17 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
 import android.view.WindowManager
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.kou.kokoapermision.R
-import com.kou.kokoapermision.util.ObjectUtils
+import com.kou.kokoapermision.permision.builder.KokoaPermissionUtil.settingIntent
 import com.kou.kokoapermision.permision.builder.KokoaPermissionUtil.startSettingActivityForResult
-import java.util.ArrayDeque
-import java.util.Deque
+import com.kou.kokoapermision.util.ObjectUtils
+import java.util.*
+
 
 class KokoaPermissionActivity : AppCompatActivity() {
     var denyTitle: CharSequence? = null
@@ -25,9 +28,8 @@ class KokoaPermissionActivity : AppCompatActivity() {
     var hasSettingButton = false
     var settingButtonText: String? = null
     var deniedCloseButtonText: String? = null
-    var isShownRationaleDialog = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        overridePendingTransition(0, 0)
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
         setupFromSavedInstanceState(savedInstanceState)
@@ -55,6 +57,18 @@ class KokoaPermissionActivity : AppCompatActivity() {
         }
     }
 
+    private val startSettingScreen = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            // 처리 로직
+            val data = result.data
+            // 결과 데이터 사용
+            checkPermissions(true)
+        }
+    }
+
+
 
     private fun checkPermissions(fromOnActivityResult: Boolean) {
         val needPermissions: MutableList<String> = ArrayList()
@@ -74,7 +88,6 @@ class KokoaPermissionActivity : AppCompatActivity() {
 
     private fun permissionResult(deniedPermissions: MutableList<String>?) {
         finish()
-        overridePendingTransition(0, 0)
         if (permissionListenerStack != null) {
             val listener = permissionListenerStack!!.pop()
             if (ObjectUtils.isEmpty(deniedPermissions)) {
@@ -90,7 +103,6 @@ class KokoaPermissionActivity : AppCompatActivity() {
 
     override fun finish() {
         super.finish()
-        overridePendingTransition(0, 0)
     }
 
     fun requestPermissions(needPermissions: List<String?>) {
@@ -113,11 +125,11 @@ class KokoaPermissionActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>,
-        grantResults: IntArray
+        grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         val deniedPermissions = KokoaPermissionUtil.getDeniedPermissions(*permissions)
-        if (deniedPermissions!!.isEmpty()) {
+        if (deniedPermissions.isEmpty()) {
             permissionResult(null)
         } else {
             showPermissionDenyDialog(deniedPermissions)
@@ -126,7 +138,6 @@ class KokoaPermissionActivity : AppCompatActivity() {
 
     fun showPermissionDenyDialog(deniedPermissions: MutableList<String>?) {
         if (TextUtils.isEmpty(denyMessage)) {
-            // denyMessage 설정 안함
             permissionResult(deniedPermissions)
             return
         }
@@ -144,30 +155,7 @@ class KokoaPermissionActivity : AppCompatActivity() {
                 settingButtonText = getString(R.string.kokoapermission_setting)
             }
             builder.setPositiveButton(settingButtonText) { dialog, which ->
-                startSettingActivityForResult(
-                    this@KokoaPermissionActivity
-                )
-            }
-        }
-        builder.show()
-    }
-
-    fun showWindowPermissionDenyDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(denyMessage)
-            .setCancelable(false)
-            .setNegativeButton(deniedCloseButtonText) { dialogInterface, i -> checkPermissions(false) }
-        if (hasSettingButton) {
-            if (TextUtils.isEmpty(settingButtonText)) {
-                settingButtonText = getString(R.string.kokoapermission_setting)
-            }
-            builder.setPositiveButton(settingButtonText) { dialog, which ->
-                val uri = Uri.fromParts("package", packageNameTmp, null)
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, uri)
-                startActivityForResult(
-                    intent,
-                    REQ_CODE_SYSTEM_ALERT_WINDOW_PERMISSION_REQUEST_SETTING
-                )
+                startSettingScreen.launch(settingIntent)
             }
         }
         builder.show()
@@ -176,14 +164,6 @@ class KokoaPermissionActivity : AppCompatActivity() {
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             KokoaPermissionUtil.REQ_CODE_REQUEST_SETTING -> checkPermissions(true)
-            REQ_CODE_SYSTEM_ALERT_WINDOW_PERMISSION_REQUEST -> if (!TextUtils.isEmpty(
-                    denyMessage
-                )
-            ) {  // 권한이 거부되고 denyMessage 가 있는 경우
-                showWindowPermissionDenyDialog()
-            } else {     // 권한있거나 또는 denyMessage가 없는 경우는 일반 permission 을 확인한다.
-                checkPermissions(false)
-            }
 
             REQ_CODE_SYSTEM_ALERT_WINDOW_PERMISSION_REQUEST_SETTING -> checkPermissions(false)
             else -> super.onActivityResult(requestCode, resultCode, data)

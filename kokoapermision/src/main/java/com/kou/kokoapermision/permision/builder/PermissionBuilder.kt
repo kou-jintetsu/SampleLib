@@ -29,10 +29,6 @@ abstract class PermissionBuilder<T : PermissionBuilder<T>> {
     fun checkPermissions() {
         requireNotNull(listener) { "You must setPermissionListener() on KokoaPermission" }
         require(!ObjectUtils.isEmpty(permissions)) { "You must setPermissions() on KokoaPermission" }
-        if (Build.VERSION.SDK_INT < VERSION_CODES.M) {
-            listener!!.onPermissionGranKokoa()
-            return
-        }
         val intent = Intent(context, KokoaPermissionActivity::class.java)
         intent.putExtra(KokoaPermissionActivity.EXTRA_PERMISSIONS, permissions)
         intent.putExtra(KokoaPermissionActivity.EXTRA_DENY_TITLE, denyTitle)
